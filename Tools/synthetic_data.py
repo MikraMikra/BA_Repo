@@ -2,6 +2,39 @@ from PIL import Image
 import pyvista as pv
 import numpy as np
 
+def generate_random_rotation_matrix():
+    # Generiere zufällige Winkel in Radiant für die Rotation um jede Achse
+    angle_x = np.random.uniform(0, 2*np.pi)
+    angle_y = np.random.uniform(0, 2*np.pi)
+    angle_z = np.random.uniform(0, 2*np.pi)
+
+    # Erstelle Rotationsmatrizen für jede Achse
+    rotation_matrix_x = np.array([
+        [1, 0, 0, 0],
+        [0, np.cos(angle_x), -np.sin(angle_x), 0],
+        [0, np.sin(angle_x), np.cos(angle_x), 0],
+        [0, 0, 0, 1]
+    ])
+
+    rotation_matrix_y = np.array([
+        [np.cos(angle_y), 0, np.sin(angle_y), 0],
+        [0, 1, 0, 0],
+        [-np.sin(angle_y), 0, np.cos(angle_y), 0],
+        [0, 0, 0, 1]
+    ])
+
+    rotation_matrix_z = np.array([
+        [np.cos(angle_z), -np.sin(angle_z), 0, 0],
+        [np.sin(angle_z), np.cos(angle_z), 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
+
+    # Multipliziere die Rotationsmatrizen, um die endgültige Rotationsmatrix zu erhalten
+    final_rotation_matrix = np.dot(rotation_matrix_z, np.dot(rotation_matrix_y, rotation_matrix_x))
+
+    return final_rotation_matrix
+
 # STL-Datei laden
 your_stl_file = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c.stl'
 mesh = pv.read(your_stl_file)
@@ -9,13 +42,7 @@ mesh = pv.read(your_stl_file)
 angle_degrees = 45.0
 angle_radians = np.radians(angle_degrees)
 
-# Rotationsmatrix erstellen
-rotation_matrix = np.array([
-    [np.cos(angle_radians), -np.sin(angle_radians), 0, 0],
-    [np.sin(angle_radians), np.cos(angle_radians), 0, 0],
-    [0, 0, 1, 0],
-    [0, 0, 0, 1]
-])
+rotation_matrix = generate_random_rotation_matrix()
 
 # 3D-Objekt transformieren (rotieren)
 mesh.transform(rotation_matrix)
@@ -58,3 +85,5 @@ background_image.paste(rotated_image, paste_position, rotated_image)
 # Speichern Sie das endgültige Bild
 final_image_path = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_with_blue_color.png'
 background_image.save(final_image_path)
+
+
