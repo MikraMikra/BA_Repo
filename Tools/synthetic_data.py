@@ -1,12 +1,14 @@
 from PIL import Image
 import pyvista as pv
 import numpy as np
+import os
+
 
 def generate_random_rotation_matrix():
     # Generiere zufällige Winkel in Radiant für die Rotation um jede Achse
-    angle_x = np.random.uniform(0, 2*np.pi)
-    angle_y = np.random.uniform(0, 2*np.pi)
-    angle_z = np.random.uniform(0, 2*np.pi)
+    angle_x = np.random.uniform(0, 2 * np.pi)
+    angle_y = np.random.uniform(0, 2 * np.pi)
+    angle_z = np.random.uniform(0, 2 * np.pi)
 
     # Erstelle Rotationsmatrizen für jede Achse
     rotation_matrix_x = np.array([
@@ -35,55 +37,55 @@ def generate_random_rotation_matrix():
 
     return final_rotation_matrix
 
+
 # STL-Datei laden
 your_stl_file = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c.stl'
-mesh = pv.read(your_stl_file)
-
-angle_degrees = 45.0
-angle_radians = np.radians(angle_degrees)
-
-rotation_matrix = generate_random_rotation_matrix()
-
-# 3D-Objekt transformieren (rotieren)
-mesh.transform(rotation_matrix)
-
-# 3D-Objekt visualisieren
-plotter = pv.Plotter(off_screen=True)
-# Änderung: Das Mesh wird jetzt blau gefärbt
-plotter.add_mesh(mesh, color='white', show_edges=False)
-
-plotter.screenshot(r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c.png',
-                   transparent_background=True)
-
-plotter.close()
-
-# Laden Sie das vorhandene Hintergrund-PNG
 background_image_path = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/a-room-at-the-beach.jpg'
-background_image = Image.open(background_image_path)
 
-# Laden Sie das gespeicherte PNG, das eingefügt werden soll
-rotated_image_path = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c.png'
-rotated_image = Image.open(rotated_image_path)
-# Ermitteln der Breite und Höhe des Hintergrundbildes
-bg_width, bg_height = background_image.size
-print(bg_width, bg_height)
+for i in range(10):
+    # Lade STL-Datei und erstelle Mesh
+    mesh = pv.read(your_stl_file)
 
-# Ermitteln der Breite und Höhe des rotierten Bildes
-rotated_width, rotated_height = rotated_image.size
-print(rotated_width, rotated_height)
+    # Generiere zufällige Rotation
+    rotation_matrix = generate_random_rotation_matrix()
 
-# Berechnen der Position, um das rotierte Bild in der Mitte des Hintergrundbildes zu platzieren
-paste_position = ((bg_width - rotated_width) // 2, (bg_height - rotated_height) // 2)
-print(paste_position)
+    # Anwenden von Rotation auf das 3D-Objekt
+    mesh.transform(rotation_matrix)
 
-# Einfügen des Rotationsbildes in das Hintergrundbild in der Mitte
-background_image.paste(rotated_image, paste_position, rotated_image)
+    # Visualisiere das 3D-Objekt
+    plotter = pv.Plotter(off_screen=True)
+    plotter.add_mesh(mesh, color='white', show_edges=False)
 
-# Einfügen des Rotationsbildes in das Hintergrundbild
-#background_image.paste(rotated_image, (640, 0), rotated_image)
+    # Screenshot speichern
+    screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c_{i}.png'
+    plotter.screenshot(screenshot_path, transparent_background=True)
+    plotter.close()
 
-# Speichern Sie das endgültige Bild
-final_image_path = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_with_blue_color.png'
-background_image.save(final_image_path)
+    # Laden Sie das Hintergrundbild
+    background_image = Image.open(background_image_path)
 
+    # Laden Sie das gespeicherte Bild, das eingefügt werden soll
+    rotated_image_path = screenshot_path
+    rotated_image = Image.open(rotated_image_path)
 
+    scaling_factor = np.random.uniform(0.1, 0.5)
+
+    # Größe des Screenshots ändern (verkleinern oder vergrößern)
+    new_size = (int(rotated_image.width * scaling_factor),
+                int(rotated_image.height * scaling_factor))
+
+    rotated_image = rotated_image.resize(new_size)
+
+    # Einfügen des veränderten Bildes in das Hintergrundbild in der Mitte
+    bg_width, bg_height = background_image.size
+    rotated_width, rotated_height = rotated_image.size
+    paste_position = (np.random.randint(0, bg_width - rotated_width),
+                      np.random.randint(0, bg_height - rotated_height))
+    background_image.paste(rotated_image, paste_position, rotated_image)
+
+    # Speichern Sie das endgültige Bild
+    final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/sun_with_blue_color_{i}.png'
+    background_image.save(final_image_path)
+
+    # Löschen des Screenshots des 3D-Modells
+    os.remove(screenshot_path)
