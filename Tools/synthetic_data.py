@@ -88,6 +88,9 @@ for i in range(10):
     new_size = (int((rotated_image.width * scaling_factor)),
                 int((rotated_image.height * scaling_factor)))
 
+    test_new_size = (int(((rotated_image.width - 540) * scaling_factor)),
+                int(((rotated_image.height - 268) * scaling_factor)))
+
     rotated_image = rotated_image.resize(new_size)
 
     # Einfügen des veränderten Bildes in das Hintergrundbild in der Mitte
@@ -106,7 +109,8 @@ for i in range(10):
     class_id = 1  # Anpassen basierend auf deinen Klassen
     x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
     print(paste_position[0])
-    width, height = new_size
+    width, height = test_new_size
+
     create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
 
     # Löschen des Screenshots des 3D-Modells

@@ -32,11 +32,13 @@ def draw_boxes(image_path, label_path, output_path):
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     # Speichere das Ausgabebild
+    print("Speichern")
     cv2.imwrite(output_path, image)
 
-# Beispielaufruf
-image_path = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/sun_with_blue_color_0.png'
-label_path = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/labels/label_0.txt'
-output_path = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/output.png'
+for i in range(10):
+    # Beispielaufruf
+    image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/sun_with_blue_color_{i}.png'
+    label_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/labels/label_{i}.txt'
+    output_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/output_{i}.png'
 
-draw_boxes(image_path, label_path, output_path)
+    draw_boxes(image_path, label_path, output_path)
