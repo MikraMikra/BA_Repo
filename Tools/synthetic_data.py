@@ -37,6 +37,20 @@ def generate_random_rotation_matrix():
 
     return final_rotation_matrix
 
+def create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height):
+    # Konvertiere die x- und y-Koordinaten in Bezug auf das Koordinatensystem mit Ursprung in der oberen linken Ecke
+    x_min = x_center - width / 2
+    y_min = y_center - height / 2
+
+    # Skaliere die Koordinaten auf den Bereich [0, 1]
+    x_min_normalized = x_center / bg_width
+    y_min_normalized = y_center / bg_height
+    width_normalized = width / bg_width
+    height_normalized = height / bg_height
+
+    with open(label_path, 'w') as f:
+        f.write(f"{class_id} {x_min_normalized} {y_min_normalized} {width_normalized} {height_normalized}\n")
+
 
 # STL-Datei laden
 your_stl_file = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c.stl'
@@ -54,7 +68,7 @@ for i in range(10):
 
     # Visualisiere das 3D-Objekt
     plotter = pv.Plotter(off_screen=True)
-    plotter.add_mesh(mesh, color='white', show_edges=False)
+    plotter.add_mesh(mesh, lighting='glossy', show_edges=False)
 
     # Screenshot speichern
     screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c_{i}.png'
@@ -71,8 +85,8 @@ for i in range(10):
     scaling_factor = np.random.uniform(0.1, 0.5)
 
     # Größe des Screenshots ändern (verkleinern oder vergrößern)
-    new_size = (int(rotated_image.width * scaling_factor),
-                int(rotated_image.height * scaling_factor))
+    new_size = (int((rotated_image.width * scaling_factor)),
+                int((rotated_image.height * scaling_factor)))
 
     rotated_image = rotated_image.resize(new_size)
 
@@ -86,6 +100,14 @@ for i in range(10):
     # Speichern Sie das endgültige Bild
     final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/sun_with_blue_color_{i}.png'
     background_image.save(final_image_path)
+
+    output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/labels"
+    label_path = os.path.join(output_dir, f"label_{i}.txt")
+    class_id = 1  # Anpassen basierend auf deinen Klassen
+    x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
+    print(paste_position[0])
+    width, height = new_size
+    create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
 
     # Löschen des Screenshots des 3D-Modells
     os.remove(screenshot_path)

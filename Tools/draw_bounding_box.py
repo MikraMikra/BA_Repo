@@ -1,36 +1,42 @@
-from PIL import Image, ImageDraw
+import cv2
 
+def draw_boxes(image_path, label_path, output_path):
+    # Lese das Bild
+    image = cv2.imread(image_path)
 
-def draw_bounding_box(image, label_file, bg_width, bg_height):
-    # Öffne die Textdatei und lies die Bounding Box-Koordinaten
-    with open(label_file, 'r') as f:
-        content = f.readline().split()
-        class_id, x_min_normalized, y_min_normalized, width_normalized, height_normalized = map(float, content)
+    # Höhe und Breite des Bildes
+    img_height, img_width, _ = image.shape
 
-    # Skaliere die Koordinaten auf die Bildgröße
-    x_min = int(x_min_normalized * bg_width)
-    y_min = int(y_min_normalized * bg_height)
-    width = int(width_normalized * bg_width)
-    height = int(height_normalized * bg_height)
+    # Lese die Label-Datei
+    with open(label_path, 'r') as file:
+        lines = file.readlines()
 
-    # Zeichne die Bounding Box auf dem Bild
-    draw = ImageDraw.Draw(image)
-    draw.rectangle([x_min, y_min, x_min + width, y_min + height], outline='red', width=2)
+    for line in lines:
+        # Trenne die Werte in der Zeile
+        class_id, x, y, width, height = map(float, line.strip().split())
 
-# Lade und zeichne die Bounding Boxen für jedes Bild
-for i in range(10):
-    # Lade das Hintergrundbild
-    bg_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/sun_with_blue_color_{i}.png'
-    bg_image = Image.open(bg_image_path)
-    bg_width, bg_height = bg_image.size
+        # Konvertiere die normalisierten Koordinaten in Pixel-Koordinaten
+        x_pixel = int(x * img_width)
+        y_pixel = int(y * img_height)
+        width_pixel = int(width * img_width)
+        height_pixel = int(height * img_height)
 
-    label_file = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/labels/label_{i}.txt'
+        # Zeichne die Bounding-Box auf das Bild
+        cv2.rectangle(image, (x_pixel - width_pixel//2, y_pixel - height_pixel//2),
+                      (x_pixel + width_pixel//2, y_pixel + height_pixel//2),
+                      color=(0, 255, 0), thickness=2)
 
-    # Öffne das Hintergrundbild erneut, um die ursprüngliche Kopie zu behalten
-    image_with_boxes = Image.open(bg_image_path).convert("RGB")
+        # Füge den Klassennamen hinzu (optional)
+        class_name = f"Class {int(class_id)}"
+        cv2.putText(image, class_name, (x_pixel, y_pixel - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-    # Zeichne die Bounding Box
-    draw_bounding_box(image_with_boxes, label_file, bg_width, bg_height)
+    # Speichere das Ausgabebild
+    cv2.imwrite(output_path, image)
 
-    # Zeige das Bild mit Bounding Box an
-    image_with_boxes.show()
+# Beispielaufruf
+image_path = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/sun_with_blue_color_0.png'
+label_path = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/labels/label_0.txt'
+output_path = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/output.png'
+
+draw_boxes(image_path, label_path, output_path)
