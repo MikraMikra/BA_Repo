@@ -56,11 +56,12 @@ def create_label_file(label_path, class_id, x_center, y_center, width, height, b
 your_stl_file = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/sun_c.stl'
 stl_files = [
     r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/sun_c.stl',
-    r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/planet.stl',
-    r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/planet.stl'
+    r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/planet_c.stl',
+    r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/planet_c.stl'
 ]
 
 images_folder = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir'
+temp_folder = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp'
 
 for i, image_file in enumerate(os.listdir(images_folder)):
     if image_file.endswith(".png") or image_file.endswith(".jpg"):
@@ -76,21 +77,27 @@ for i, image_file in enumerate(os.listdir(images_folder)):
             # Anwenden von Rotation auf das 3D-Objekt
             mesh.transform(rotation_matrix)
 
-            # Visualisiere das 3D-Objekt
-            plotter = pv.Plotter(off_screen=True)
-            plotter.add_mesh(mesh, color='white', show_edges=False)
+            if j == 2:
+                # Visualisiere das 3D-Objekt
+                plotter = pv.Plotter(off_screen=True)
+                plotter.add_mesh(mesh, color='black', show_edges=False)
+            else:
+                # Visualisiere das 3D-Objekt
+                plotter = pv.Plotter(off_screen=True)
+                plotter.add_mesh(mesh, color='white', show_edges=False)
 
             # Screenshot speichern
-            screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/{i}_{j}.png'
+            screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{i}_{j}.png'
             plotter.screenshot(screenshot_path, transparent_background=True)
             plotter.close()
 
-            # Laden Sie das Hintergrundbild
-            background_image = Image.open(image_path)
+        # Laden Sie das Hintergrundbild
+        background_image = Image.open(image_path)
 
+        for x, screenshot_path in enumerate(os.listdir(temp_folder)):
             # Laden Sie das gespeicherte Bild, das eingefügt werden soll
             rotated_image_path = screenshot_path
-            rotated_image = Image.open(rotated_image_path)
+            rotated_image = Image.open(f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
 
             scaling_factor = np.random.uniform(0.1, 0.5)
 
@@ -115,19 +122,20 @@ for i, image_file in enumerate(os.listdir(images_folder)):
             background_image.save(final_image_path)
 
             # Kopiere die PNG-Datei als JPG-Datei
-            shutil.copy(final_image_path, f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}_{j}.jpg')
+            shutil.copy(final_image_path,
+                        f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}_{j}.jpg')
             os.remove(final_image_path)
 
             output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels"
             label_path = os.path.join(output_dir, f"{i}_{j}.txt")
-            class_id = 1  # Anpassen basierend auf deinen Klassen
+            class_id = j  # Anpassen basierend auf deinen Klassen
             x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
-            #print(paste_position[0])
+            # print(paste_position[0])
             width, height = test_new_size
 
             create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
 
             # Löschen des Screenshots des 3D-Modells
-            os.remove(screenshot_path)
+            os.remove(f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
 
-            print(f"Verarbeite Bild {i + 1}: {image_path} mit Objekt {j}")
+        print(f"Verarbeite Bild {i + 1}: {image_path}")
