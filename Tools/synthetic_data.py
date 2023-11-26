@@ -128,14 +128,25 @@ for i, image_file in enumerate(os.listdir(images_folder)):
 
             output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels"
             label_path = os.path.join(output_dir, f"{i}.txt")
-            class_id = x
+            file_name = os.path.basename(rotated_image_path)  # Get the file name from the path
+            # print(f"File Name: {file_name}, Type: {type(file_name)}")  # Add this line
+            if file_name[-5] == "0":
+                class_id = 0
+            elif file_name[-5] == "1":
+                class_id = 1
+            elif file_name[-5] == "2":
+                class_id = 2
             x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
             # print(paste_position[0])
             width, height = test_new_size
 
             create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
 
+            # shutil.copy(f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}',
+            #             '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp_2')
+
             # Löschen des Screenshots des 3D-Modells
             os.remove(f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
+
 
         print(f"Verarbeite Bild {i + 1}: {image_path}")
