@@ -2,7 +2,7 @@ from PIL import Image
 import pyvista as pv
 import numpy as np
 import os
-
+import shutil
 
 def generate_random_rotation_matrix():
     # Generiere zufällige Winkel in Radiant für die Rotation um jede Achse
@@ -54,64 +54,74 @@ def create_label_file(label_path, class_id, x_center, y_center, width, height, b
 
 # STL-Datei laden
 your_stl_file = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c.stl'
-background_image_path = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/a-room-at-the-beach.jpg'
 
-for i in range(10):
-    # Lade STL-Datei und erstelle Mesh
-    mesh = pv.read(your_stl_file)
+images_folder = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Office_building'
 
-    # Generiere zufällige Rotation
-    rotation_matrix = generate_random_rotation_matrix()
+for i, image_file in enumerate(os.listdir(images_folder)):
+    if image_file.endswith(".png") or image_file.endswith(".jpg"):
+        image_path = os.path.join(images_folder, image_file)
 
-    # Anwenden von Rotation auf das 3D-Objekt
-    mesh.transform(rotation_matrix)
+        # Lade STL-Datei und erstelle Mesh
+        mesh = pv.read(your_stl_file)
 
-    # Visualisiere das 3D-Objekt
-    plotter = pv.Plotter(off_screen=True)
-    plotter.add_mesh(mesh, lighting='glossy', show_edges=False)
+        # Generiere zufällige Rotation
+        rotation_matrix = generate_random_rotation_matrix()
 
-    # Screenshot speichern
-    screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c_{i}.png'
-    plotter.screenshot(screenshot_path, transparent_background=True)
-    plotter.close()
+        # Anwenden von Rotation auf das 3D-Objekt
+        mesh.transform(rotation_matrix)
 
-    # Laden Sie das Hintergrundbild
-    background_image = Image.open(background_image_path)
+        # Visualisiere das 3D-Objekt
+        plotter = pv.Plotter(off_screen=True)
+        plotter.add_mesh(mesh, color='white', show_edges=False)
 
-    # Laden Sie das gespeicherte Bild, das eingefügt werden soll
-    rotated_image_path = screenshot_path
-    rotated_image = Image.open(rotated_image_path)
+        # Screenshot speichern
+        screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/sun_c_{i}.png'
+        plotter.screenshot(screenshot_path, transparent_background=True)
+        plotter.close()
 
-    scaling_factor = np.random.uniform(0.1, 0.5)
+        # Laden Sie das Hintergrundbild
+        background_image = Image.open(image_path)
 
-    # Größe des Screenshots ändern (verkleinern oder vergrößern)
-    new_size = (int((rotated_image.width * scaling_factor)),
-                int((rotated_image.height * scaling_factor)))
+        # Laden Sie das gespeicherte Bild, das eingefügt werden soll
+        rotated_image_path = screenshot_path
+        rotated_image = Image.open(rotated_image_path)
 
-    test_new_size = (int(((rotated_image.width - 540) * scaling_factor)),
-                int(((rotated_image.height - 268) * scaling_factor)))
+        scaling_factor = np.random.uniform(0.1, 0.5)
 
-    rotated_image = rotated_image.resize(new_size)
+        # Größe des Screenshots ändern (verkleinern oder vergrößern)
+        new_size = (int((rotated_image.width * scaling_factor)),
+                    int((rotated_image.height * scaling_factor)))
 
-    # Einfügen des veränderten Bildes in das Hintergrundbild in der Mitte
-    bg_width, bg_height = background_image.size
-    rotated_width, rotated_height = rotated_image.size
-    paste_position = (np.random.randint(0, bg_width - rotated_width),
-                      np.random.randint(0, bg_height - rotated_height))
-    background_image.paste(rotated_image, paste_position, rotated_image)
+        test_new_size = (int(((rotated_image.width - 520) * scaling_factor)),
+                         int(((rotated_image.height - 240) * scaling_factor)))
 
-    # Speichern Sie das endgültige Bild
-    final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/sun_with_blue_color_{i}.png'
-    background_image.save(final_image_path)
+        rotated_image = rotated_image.resize(new_size)
 
-    output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/Planetengetriebe_meshes/SynData/labels"
-    label_path = os.path.join(output_dir, f"label_{i}.txt")
-    class_id = 1  # Anpassen basierend auf deinen Klassen
-    x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
-    print(paste_position[0])
-    width, height = test_new_size
+        # Einfügen des veränderten Bildes in das Hintergrundbild in der Mitte
+        bg_width, bg_height = background_image.size
+        rotated_width, rotated_height = rotated_image.size
+        paste_position = (np.random.randint(0, bg_width - rotated_width),
+                          np.random.randint(0, bg_height - rotated_height))
+        background_image.paste(rotated_image, paste_position, rotated_image)
 
-    create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
+        # Speichern Sie das endgültige Bild
+        final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/SunDataSet/images/sun_{i}.png'
+        background_image.save(final_image_path)
 
-    # Löschen des Screenshots des 3D-Modells
-    os.remove(screenshot_path)
+        # Kopiere die PNG-Datei als JPG-Datei
+        shutil.copy(final_image_path, f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/SunDataSet/images/sun_{i}.jpg')
+        os.remove(final_image_path)
+
+        output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/SunDataSet/labels"
+        label_path = os.path.join(output_dir, f"sun_{i}.txt")
+        class_id = 1  # Anpassen basierend auf deinen Klassen
+        x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
+        #print(paste_position[0])
+        width, height = test_new_size
+
+        create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
+
+        # Löschen des Screenshots des 3D-Modells
+        os.remove(screenshot_path)
+
+        print(f"Verarbeite Bild {i + 1}: {image_path}")
