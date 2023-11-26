@@ -1,6 +1,6 @@
 import os
 
-folder_path = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/TestDir/SunDataSet/valid/labels"
+folder_path = "/Tools/MainDir/SunDataSet/valid/labels"
 
 
 def replace_first_number(file_path):
