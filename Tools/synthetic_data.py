@@ -48,7 +48,7 @@ def create_label_file(label_path, class_id, x_center, y_center, width, height, b
     width_normalized = width / bg_width
     height_normalized = height / bg_height
 
-    with open(label_path, 'w') as f:
+    with open(label_path, 'a') as f:
         f.write(f"{class_id} {x_min_normalized} {y_min_normalized} {width_normalized} {height_normalized}\n")
 
 
@@ -62,6 +62,8 @@ stl_files = [
 
 images_folder = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir'
 temp_folder = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp'
+
+temp_paste_position = []
 
 for i, image_file in enumerate(os.listdir(images_folder)):
     if image_file.endswith(".png") or image_file.endswith(".jpg"):
@@ -117,23 +119,29 @@ for i, image_file in enumerate(os.listdir(images_folder)):
                               np.random.randint(0, bg_height - rotated_height))
             background_image.paste(rotated_image, paste_position, rotated_image)
 
+            temp_paste_position.append(paste_position)
+
             # Speichern Sie das endgültige Bild
-            final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}_{j}.png'
+            final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.png'
             background_image.save(final_image_path)
 
             # Kopiere die PNG-Datei als JPG-Datei
             shutil.copy(final_image_path,
-                        f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}_{j}.jpg')
+                        f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.jpg')
             os.remove(final_image_path)
 
             output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels"
-            label_path = os.path.join(output_dir, f"{i}_{j}.txt")
-            class_id = j  # Anpassen basierend auf deinen Klassen
-            x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
-            # print(paste_position[0])
-            width, height = test_new_size
+            label_path = os.path.join(output_dir, f"{i}.txt")
+            if (x + 1) % 3 == 0:  # Beachte, dass die Indizes bei 0 beginnen
+                for z in range(3):
+                    center = temp_paste_position[z]
+                    class_id = z  # Anpassen basierend auf deinen Klassen
+                    x_center, y_center = center[0] + new_size[0] / 2, center[1] + new_size[1] / 2
+                    # print(paste_position[0])
+                    width, height = test_new_size
 
-            create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
+                    create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
+                temp_paste_position.clear()
 
             # Löschen des Screenshots des 3D-Modells
             os.remove(f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
