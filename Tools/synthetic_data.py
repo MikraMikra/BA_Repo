@@ -101,6 +101,18 @@ for i, image_file in enumerate(os.listdir(images_folder)):
             # Laden Sie das Hintergrundbild
             background_image = Image.open(image_path)
 
+            # Zielgröße setzen
+            target_size = (640, 480)
+
+            # Verhältnis von Zielgröße zu Originalgröße berechnen
+            ratio = min(target_size[0] / background_image.width, target_size[1] / background_image.height)
+
+            # Neue Größe berechnen
+            new_size_background = (int(background_image.width * ratio), int(background_image.height * ratio))
+
+            # Hintergrundbild auf die neue Größe skalieren, ohne zu verzerrren
+            background_image = background_image.resize(new_size_background)
+
             for x, screenshot_path in enumerate(os.listdir(temp_folder)):
                 try:
                     # Laden Sie das gespeicherte Bild, das eingefügt werden soll
@@ -108,7 +120,7 @@ for i, image_file in enumerate(os.listdir(images_folder)):
                     rotated_image = Image.open(
                         f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
 
-                    scaling_factor = np.random.uniform(0.1, 0.5)
+                    scaling_factor = np.random.uniform(0.05, 0.35)
 
                     # Größe des Screenshots ändern (verkleinern oder vergrößern)
                     new_size = (int((rotated_image.width * scaling_factor)),
