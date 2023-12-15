@@ -3,6 +3,7 @@ import pyvista as pv
 import numpy as np
 import os
 import shutil
+import argparse
 
 
 def generate_random_rotation_matrix():
@@ -40,10 +41,6 @@ def generate_random_rotation_matrix():
 
 
 def create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height):
-    # Konvertiere die x- und y-Koordinaten in Bezug auf das Koordinatensystem mit Ursprung in der oberen linken Ecke
-    x_min = x_center - width / 2
-    y_min = y_center - height / 2
-
     # Skaliere die Koordinaten auf den Bereich [0, 1]
     x_min_normalized = x_center / bg_width
     y_min_normalized = y_center / bg_height
@@ -53,128 +50,132 @@ def create_label_file(label_path, class_id, x_center, y_center, width, height, b
     with open(label_path, 'a') as f:
         f.write(f"{class_id} {x_min_normalized} {y_min_normalized} {width_normalized} {height_normalized}\n")
 
+def main(args):
+    # STL-Datei laden
+    stl_files = args.stl_files
+    images_folder = args.images_folder
+    temp_folder = args.temp_folder
 
-# STL-Datei laden
-your_stl_file = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/sun_c.stl'
-stl_files = [
-    r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/sun_c.stl',
-    r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/planet_c.stl',
-    r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Planetengetriebe_meshes/planet_c.stl'
-]
+    for i, image_file in enumerate(os.listdir(images_folder)):
+        try:
+            if image_file.endswith(".png") or image_file.endswith(".jpg"):
+                image_path = os.path.join(images_folder, image_file)
 
-images_folder = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/Office_building'
-temp_folder = r'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp'
+                for j, your_stl_file in enumerate(stl_files):
+                    try:
+                        # Lade STL-Datei und erstelle Mesh
+                        mesh = pv.read(your_stl_file)
 
-for i, image_file in enumerate(os.listdir(images_folder)):
-    try:
-        if image_file.endswith(".png") or image_file.endswith(".jpg"):
-            image_path = os.path.join(images_folder, image_file)
+                        # Generiere zufällige Rotation
+                        rotation_matrix = generate_random_rotation_matrix()
 
-            for j, your_stl_file in enumerate(stl_files):
-                try:
-                    # Lade STL-Datei und erstelle Mesh
-                    mesh = pv.read(your_stl_file)
+                        # Anwenden von Rotation auf das 3D-Objekt
+                        mesh.transform(rotation_matrix)
 
-                    # Generiere zufällige Rotation
-                    rotation_matrix = generate_random_rotation_matrix()
+                        if j == 2:
+                            # Visualisiere das 3D-Objekt
+                            plotter = pv.Plotter(off_screen=True)
+                            plotter.add_mesh(mesh, color='black', show_edges=False)
+                        else:
+                            # Visualisiere das 3D-Objekt
+                            plotter = pv.Plotter(off_screen=True)
+                            plotter.add_mesh(mesh, color='white', show_edges=False)
 
-                    # Anwenden von Rotation auf das 3D-Objekt
-                    mesh.transform(rotation_matrix)
+                        # Screenshot speichern
+                        screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{i}_{j}.png'
+                        plotter.screenshot(screenshot_path, transparent_background=True)
+                        plotter.close()
+                    except Exception as e:
+                        print(f"Fehler beim Verarbeiten der STL-Datei {your_stl_file}: {e}")
+                        continue
 
-                    if j == 2:
-                        # Visualisiere das 3D-Objekt
-                        plotter = pv.Plotter(off_screen=True)
-                        plotter.add_mesh(mesh, color='black', show_edges=False)
-                    else:
-                        # Visualisiere das 3D-Objekt
-                        plotter = pv.Plotter(off_screen=True)
-                        plotter.add_mesh(mesh, color='white', show_edges=False)
+                # Laden Sie das Hintergrundbild
+                background_image = Image.open(image_path)
 
-                    # Screenshot speichern
-                    screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{i}_{j}.png'
-                    plotter.screenshot(screenshot_path, transparent_background=True)
-                    plotter.close()
-                except Exception as e:
-                    print(f"Fehler beim Verarbeiten der STL-Datei {your_stl_file}: {e}")
-                    continue
+                # Zielgröße setzen
+                target_size = (640, 480)
 
-            # Laden Sie das Hintergrundbild
-            background_image = Image.open(image_path)
+                # Verhältnis von Zielgröße zu Originalgröße berechnen
+                # ratio = min(target_size[0] / background_image.width, target_size[1] / background_image.height)
 
-            # Zielgröße setzen
-            target_size = (640, 480)
+                # Neue Größe berechnen
+                # new_size_background = (int(background_image.width * ratio), int(background_image.height * ratio))
 
-            # Verhältnis von Zielgröße zu Originalgröße berechnen
-            ratio = min(target_size[0] / background_image.width, target_size[1] / background_image.height)
+                # Hintergrundbild auf die neue Größe skalieren, ohne zu verzerrren
+                background_image = background_image.resize(target_size)
 
-            # Neue Größe berechnen
-            new_size_background = (int(background_image.width * ratio), int(background_image.height * ratio))
+                for x, screenshot_path in enumerate(os.listdir(temp_folder)):
+                    try:
+                        # Laden Sie das gespeicherte Bild, das eingefügt werden soll
+                        rotated_image_path = screenshot_path
+                        rotated_image = Image.open(
+                            f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
 
-            # Hintergrundbild auf die neue Größe skalieren, ohne zu verzerrren
-            background_image = background_image.resize(new_size_background)
+                        scaling_factor = np.random.uniform(0.05, 0.35)
 
-            for x, screenshot_path in enumerate(os.listdir(temp_folder)):
-                try:
-                    # Laden Sie das gespeicherte Bild, das eingefügt werden soll
-                    rotated_image_path = screenshot_path
-                    rotated_image = Image.open(
-                        f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
+                        # Größe des Screenshots ändern (verkleinern oder vergrößern)
+                        new_size = (int((rotated_image.width * scaling_factor)),
+                                    int((rotated_image.height * scaling_factor)))
 
-                    scaling_factor = np.random.uniform(0.05, 0.35)
+                        # Für die Bounding Boxen
+                        test_new_size = (int(((rotated_image.width - 520) * scaling_factor)),
+                                         int(((rotated_image.height - 240) * scaling_factor)))
 
-                    # Größe des Screenshots ändern (verkleinern oder vergrößern)
-                    new_size = (int((rotated_image.width * scaling_factor)),
-                                int((rotated_image.height * scaling_factor)))
+                        rotated_image = rotated_image.resize(new_size)
 
-                    test_new_size = (int(((rotated_image.width - 520) * scaling_factor)),
-                                     int(((rotated_image.height - 240) * scaling_factor)))
+                        # Einfügen des veränderten Bildes in das Hintergrundbild in der Mitte
+                        bg_width, bg_height = background_image.size
+                        rotated_width, rotated_height = rotated_image.size
+                        paste_position = (np.random.randint(0, bg_width - rotated_width),
+                                          np.random.randint(0, bg_height - rotated_height))
+                        background_image.paste(rotated_image, paste_position, rotated_image)
 
-                    rotated_image = rotated_image.resize(new_size)
+                        # Speichern Sie das endgültige Bild
+                        final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.png'
+                        background_image.save(final_image_path)
 
-                    # Einfügen des veränderten Bildes in das Hintergrundbild in der Mitte
-                    bg_width, bg_height = background_image.size
-                    rotated_width, rotated_height = rotated_image.size
-                    paste_position = (np.random.randint(0, bg_width - rotated_width),
-                                      np.random.randint(0, bg_height - rotated_height))
-                    background_image.paste(rotated_image, paste_position, rotated_image)
+                        # Kopiere die PNG-Datei als JPG-Datei
+                        shutil.copy(final_image_path,
+                                    f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.jpg')
+                        os.remove(final_image_path)
 
-                    # Speichern Sie das endgültige Bild
-                    final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.png'
-                    background_image.save(final_image_path)
+                        output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels"
+                        label_path = os.path.join(output_dir, f"{i}.txt")
+                        file_name = os.path.basename(rotated_image_path)  # Get the file name from the path
+                        # print(f"File Name: {file_name}, Type: {type(file_name)}")  # Add this line
+                        if file_name[-5] == "0":
+                            class_id = 0
+                        elif file_name[-5] == "1":
+                            class_id = 1
+                        elif file_name[-5] == "2":
+                            class_id = 2
+                        x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
+                        # print(paste_position[0])
+                        width, height = test_new_size
 
-                    # Kopiere die PNG-Datei als JPG-Datei
-                    shutil.copy(final_image_path,
-                                f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.jpg')
-                    os.remove(final_image_path)
+                        create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
 
-                    output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels"
-                    label_path = os.path.join(output_dir, f"{i}.txt")
-                    file_name = os.path.basename(rotated_image_path)  # Get the file name from the path
-                    # print(f"File Name: {file_name}, Type: {type(file_name)}")  # Add this line
-                    if file_name[-5] == "0":
-                        class_id = 0
-                    elif file_name[-5] == "1":
-                        class_id = 1
-                    elif file_name[-5] == "2":
-                        class_id = 2
-                    x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
-                    # print(paste_position[0])
-                    width, height = test_new_size
+                        # shutil.copy(f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}',
+                        #             '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp_2')
 
-                    create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
+                        # Löschen des Screenshots des 3D-Modells
+                        os.remove(
+                            f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
+                    except Exception as e:
+                        print(f"Fehler beim Verarbeiten des Bildes {image_file}: {e}")
+                        continue
 
-                    # shutil.copy(f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}',
-                    #             '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp_2')
+                print(f"Verarbeite Bild {i + 1}: {image_path}")
 
-                    # Löschen des Screenshots des 3D-Modells
-                    os.remove(
-                        f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
-                except Exception as e:
-                    print(f"Fehler beim Verarbeiten des Bildes {image_file}: {e}")
-                    continue
+        except Exception as e:
+            print(f"Fehler beim Verarbeiten des Bildes {image_file}: {e}")
+            continue
 
-            print(f"Verarbeite Bild {i + 1}: {image_path}")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Description of your program")
+    parser.add_argument("--stl_files", nargs="+", help="List of STL files")
+    parser.add_argument("--images_folder", help="Path to the folder containing images")
+    parser.add_argument("--temp_folder", help="Path to the temporary folder")
 
-    except Exception as e:
-        print(f"Fehler beim Verarbeiten des Bildes {image_file}: {e}")
-        continue
+    args = parser.parse_args()
+    main(args)
