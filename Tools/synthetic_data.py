@@ -8,8 +8,13 @@ import argparse
 
 def generate_random_rotation_matrix():
     # Generiere zufällige Winkel in Radiant für die Rotation um jede Achse
-    angle_x = np.random.uniform(0, 2 * np.pi)
-    angle_y = np.random.uniform(0, 2 * np.pi)
+    i = np.pi / 4
+    #angle_x = np.random.uniform(0, 2 * np.pi)
+    #angle_y = np.random.uniform(0, 2 * np.pi)
+    #angle_z = np.random.uniform(0, 2 * np.pi)
+
+    angle_x = np.random.uniform(-i, i)
+    angle_y = np.random.uniform(-i, i)
     angle_z = np.random.uniform(0, 2 * np.pi)
 
     # Erstelle Rotationsmatrizen für jede Achse
@@ -38,7 +43,6 @@ def generate_random_rotation_matrix():
     final_rotation_matrix = np.dot(rotation_matrix_z, np.dot(rotation_matrix_y, rotation_matrix_x))
 
     return final_rotation_matrix
-
 
 def create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height):
     # Skaliere die Koordinaten auf den Bereich [0, 1]
@@ -78,7 +82,6 @@ def main(args):
                             # Visualisiere das 3D-Objekt
                             plotter = pv.Plotter(off_screen=True)
                             plotter.add_mesh(mesh, color='black', show_edges=False)
-
                         else:
                             # Visualisiere das 3D-Objekt
                             plotter = pv.Plotter(off_screen=True)
@@ -138,6 +141,8 @@ def main(args):
                         rotated_width, rotated_height = rotated_image.size
                         paste_position = (np.random.randint(0, bg_width - rotated_width),
                                           np.random.randint(0, bg_height - rotated_height))
+
+
                         background_image.paste(rotated_image, paste_position, rotated_image)
 
                         # Speichern Sie das endgültige Bild
