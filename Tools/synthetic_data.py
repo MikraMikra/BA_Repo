@@ -78,10 +78,14 @@ def main(args):
                             # Visualisiere das 3D-Objekt
                             plotter = pv.Plotter(off_screen=True)
                             plotter.add_mesh(mesh, color='black', show_edges=False)
+
                         else:
                             # Visualisiere das 3D-Objekt
                             plotter = pv.Plotter(off_screen=True)
                             plotter.add_mesh(mesh, color='white', show_edges=False)
+
+                        # Setzen Sie die Kameraposition und -orientierung für eine Draufsicht
+                        plotter.camera_position = [(0, 0, -2 * mesh.length), (0, 0, 0), (0, 1, 0)]
 
                         # Screenshot speichern
                         screenshot_path = f'{temp_folder}/{i}_{j}.png'
