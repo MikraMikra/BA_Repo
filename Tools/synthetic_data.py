@@ -55,6 +55,8 @@ def main(args):
     stl_files = args.stl_files
     images_folder = args.images_folder
     temp_folder = args.temp_folder
+    final_image_path = args.output
+    final_label_path = args.label
 
     for i, image_file in enumerate(os.listdir(images_folder)):
         try:
@@ -82,7 +84,7 @@ def main(args):
                             plotter.add_mesh(mesh, color='white', show_edges=False)
 
                         # Screenshot speichern
-                        screenshot_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{i}_{j}.png'
+                        screenshot_path = f'{temp_folder}/{i}_{j}.png'
                         plotter.screenshot(screenshot_path, transparent_background=True)
                         plotter.close()
                     except Exception as e:
@@ -93,7 +95,7 @@ def main(args):
                 background_image = Image.open(image_path)
 
                 # Zielgröße setzen
-                target_size = (640, 480)
+                target_size = (1920, 1080)
 
                 # Verhältnis von Zielgröße zu Originalgröße berechnen
                 # ratio = min(target_size[0] / background_image.width, target_size[1] / background_image.height)
@@ -105,13 +107,17 @@ def main(args):
                 background_image = background_image.resize(target_size)
 
                 for x, screenshot_path in enumerate(os.listdir(temp_folder)):
+                    print("- - - - -")
                     try:
                         # Laden Sie das gespeicherte Bild, das eingefügt werden soll
                         rotated_image_path = screenshot_path
-                        rotated_image = Image.open(
-                            f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
+                        rotated_image = Image.open(f'{temp_folder}/{rotated_image_path}')
+                        file_name = os.path.basename(rotated_image_path)  # Get the file name from the path
 
-                        scaling_factor = np.random.uniform(0.05, 0.35)
+                        if file_name[-5] == "3":
+                            scaling_factor = np.random.uniform(0.5, 0.6)
+                        else:
+                            scaling_factor = np.random.uniform(0.1, 0.2)
 
                         # Größe des Screenshots ändern (verkleinern oder vergrößern)
                         new_size = (int((rotated_image.width * scaling_factor)),
@@ -131,17 +137,17 @@ def main(args):
                         background_image.paste(rotated_image, paste_position, rotated_image)
 
                         # Speichern Sie das endgültige Bild
-                        final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.png'
-                        background_image.save(final_image_path)
+                        # final_image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.png'
+                        #final_image_path = f'{final_image_path}/{i}.jpg'
+                        background_image.save(f'{final_image_path}/{i}.jpg')
 
                         # Kopiere die PNG-Datei als JPG-Datei
-                        shutil.copy(final_image_path,
-                                    f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.jpg')
-                        os.remove(final_image_path)
+                        #shutil.copy(final_image_path,
+                           #         f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.jpg')
+                        #os.remove(final_image_path)
 
-                        output_dir = "/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels"
+                        output_dir = final_label_path
                         label_path = os.path.join(output_dir, f"{i}.txt")
-                        file_name = os.path.basename(rotated_image_path)  # Get the file name from the path
                         # print(f"File Name: {file_name}, Type: {type(file_name)}")  # Add this line
                         if file_name[-5] == "0":
                             class_id = 0
@@ -149,6 +155,8 @@ def main(args):
                             class_id = 1
                         elif file_name[-5] == "2":
                             class_id = 2
+                        elif file_name[-5] == "3":
+                            class_id = 3
                         x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
                         # print(paste_position[0])
                         width, height = test_new_size
@@ -160,8 +168,10 @@ def main(args):
 
                         # Löschen des Screenshots des 3D-Modells
                         os.remove(
-                            f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp/{rotated_image_path}')
+                            f'{temp_folder}/{rotated_image_path}')
                     except Exception as e:
+                        os.remove(
+                            f'{temp_folder}/{rotated_image_path}')
                         print(f"Fehler beim Verarbeiten des Bildes {image_file}: {e}")
                         continue
 
@@ -175,6 +185,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Description of your program")
     parser.add_argument("--stl_files", nargs="+", help="List of STL files")
     parser.add_argument("--images_folder", help="Path to the folder containing images")
+    parser.add_argument("--output", help="Path to output folder")
+    parser.add_argument("--label", help="Path to label folder")
     parser.add_argument("--temp_folder", help="Path to the temporary folder")
 
     args = parser.parse_args()

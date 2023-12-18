@@ -48,8 +48,8 @@ files = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/image
 
 for i in range(len(files)):
     # Beispielaufruf
-    image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.jpg'
-    label_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels/{i}.txt'
+    image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Resources/images/{i}.jpg'
+    label_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Resources/labels/{i}.txt'
     output_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labeled_images/output_{i}.jpg'
 
     draw_boxes(image_path, label_path, output_path)
