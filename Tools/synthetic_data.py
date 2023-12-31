@@ -1,4 +1,4 @@
-a# Import necessary libraries
+# Import necessary libraries
 from PIL import Image
 import pyvista as pv
 import numpy as np
