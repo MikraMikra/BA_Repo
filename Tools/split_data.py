@@ -54,7 +54,7 @@ def main():
     parser = argparse.ArgumentParser(description='Split image and label files into training, validation, and test sets.')
     parser.add_argument('--source', required=True, help='Path to the root folder containing "images" and "labels" folders.')
     parser.add_argument('--train_ratio', type=float, default=0.7, help='Percentage of data for the training set.')
-    parser.add_argument('--val_ratio', type=float, default=0.15, help='Percentage of data for the validation set.')
+    parser.add_argument('--val_ratio', type=float, default=0.25, help='Percentage of data for the validation set.')
 
     args = parser.parse_args()
 

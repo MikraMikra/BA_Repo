@@ -1,9 +1,10 @@
+
 from moviepy.editor import VideoFileClip
 from moviepy.video.VideoClip import ImageClip
 import os
 import argparse
 from PIL import Image
-
+import random
 
 def convert_video_to_images(input_source, output_folder, image_size):
     # Create the output folder if it does not exist
@@ -20,7 +21,6 @@ def convert_video_to_images(input_source, output_folder, image_size):
         # If the source is a single video file, process it
         process_single_video(input_source, output_folder, image_size)
 
-
 def process_single_video(input_video, output_folder, image_size):
     # load the video
     video_clip = VideoFileClip(input_video)
@@ -34,10 +34,24 @@ def process_single_video(input_video, output_folder, image_size):
             img_clip = img_clip.resize((image_size[0], image_size[1]))
 
         img_clip.save_frame(image_file, withmask=False)
+        create_random_cuts_and_scale(image_file, 5)
 
     # close the video
     video_clip.close()
 
+def create_random_cuts_and_scale(image_path, cuts):
+    with Image.open(image_path) as img:
+        for _ in range(cuts):
+            width, height = img.size
+            x = random.randint(0, width - 900)
+            y = random.randint(0, height - 900)
+
+            cut = img.crop((x, y, x + 900, y + 900))
+            cut = cut.resize((300, 300), Image.ANTIALIAS)
+            cut_file_name = f'{os.path.splitext(image_path)[0]}_cut_scaled_{x}_{y}.jpg'
+            cut.save(cut_file_name)
+
+    os.remove(image_path)  # Delete the original image after creating cuts
 
 def main():
     parser = argparse.ArgumentParser(description='Convert a video or videos in a folder to images.')
@@ -53,7 +67,6 @@ def main():
         image_size = tuple(map(int, args.size.split('x')))
 
     convert_video_to_images(args.source, args.output, image_size)
-
 
 if __name__ == "__main__":
     main()

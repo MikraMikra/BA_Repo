@@ -90,7 +90,7 @@ def main(args):
     final_label_path = args.label
 
     # Iterate over images in the specified folder
-    for i, image_file in enumerate(os.listdir(images_folder)):
+    for i, image_file in enumerate(os.listdir(images_folder)): # Hintergrundbilder
         try:
             # Check if the file is an image (PNG or JPG)
             if image_file.endswith(".png") or image_file.endswith(".jpg"):
