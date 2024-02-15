@@ -1,5 +1,6 @@
 import cv2
 
+
 def draw_boxes(image_path, label_path, output_path):
     try:
         # Lese das Bild
@@ -24,8 +25,8 @@ def draw_boxes(image_path, label_path, output_path):
                 height_pixel = int(height * img_height)
 
                 # Zeichne die Bounding-Box auf das Bild
-                cv2.rectangle(image, (x_pixel - width_pixel//2, y_pixel - height_pixel//2),
-                              (x_pixel + width_pixel//2, y_pixel + height_pixel//2),
+                cv2.rectangle(image, (x_pixel - width_pixel // 2, y_pixel - height_pixel // 2),
+                              (x_pixel + width_pixel // 2, y_pixel + height_pixel // 2),
                               color=(0, 255, 0), thickness=2)
 
                 # Füge den Klassennamen hinzu (optional)
@@ -44,12 +45,13 @@ def draw_boxes(image_path, label_path, output_path):
     except Exception as e:
         print(f"Fehler beim Verarbeiten der Dateien: {e}")
 
+
 files = '/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images'
 
 for i in range(len(files)):
     # Beispielaufruf
-    image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Resources/images/{i}.jpg'
-    label_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Resources/labels/{i}.txt'
+    image_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images/{i}.jpg'
+    label_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels/{i}.txt'
     output_path = f'/Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labeled_images/output_{i}.jpg'
 
     draw_boxes(image_path, label_path, output_path)

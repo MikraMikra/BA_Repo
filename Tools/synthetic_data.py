@@ -21,26 +21,20 @@ def generate_random_rotation_matrix():
     angle_z = np.random.uniform(0, 2 * np.pi)
 
     # Create rotation matrices for each axis
-    rotation_matrix_x = np.array([
-        [1, 0, 0, 0],
-        [0, np.cos(angle_x), -np.sin(angle_x), 0],
-        [0, np.sin(angle_x), np.cos(angle_x), 0],
-        [0, 0, 0, 1]
-    ])
+    rotation_matrix_x = np.array([[1, 0, 0, 0],
+                                  [0, np.cos(angle_x), -np.sin(angle_x), 0],
+                                  [0, np.sin(angle_x), np.cos(angle_x), 0],
+                                  [0, 0, 0, 1]])
 
-    rotation_matrix_y = np.array([
-        [np.cos(angle_y), 0, np.sin(angle_y), 0],
-        [0, 1, 0, 0],
-        [-np.sin(angle_y), 0, np.cos(angle_y), 0],
-        [0, 0, 0, 1]
-    ])
+    rotation_matrix_y = np.array([[np.cos(angle_y), 0, np.sin(angle_y), 0],
+                                  [0, 1, 0, 0],
+                                  [-np.sin(angle_y), 0, np.cos(angle_y), 0],
+                                  [0, 0, 0, 1]])
 
-    rotation_matrix_z = np.array([
-        [np.cos(angle_z), -np.sin(angle_z), 0, 0],
-        [np.sin(angle_z), np.cos(angle_z), 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ])
+    rotation_matrix_z = np.array([[np.cos(angle_z), -np.sin(angle_z), 0, 0],
+                                  [np.sin(angle_z), np.cos(angle_z), 0, 0],
+                                  [0, 0, 1, 0],
+                                  [0, 0, 0, 1]])
 
     # Combine rotation matrices to get the final rotation matrix
     final_rotation_matrix = np.dot(rotation_matrix_z, np.dot(rotation_matrix_y, rotation_matrix_x))
@@ -75,7 +69,7 @@ def create_label_file(label_path, class_id, x_center, y_center, width, height, b
 
 
 # Main function to generate synthetic images with labeled bounding boxes
-def main(args):
+def main():
     """
     Main function to generate synthetic images with labeled bounding boxes.
 
@@ -90,24 +84,31 @@ def main(args):
     final_label_path = args.label
 
     # Iterate over images in the specified folder
-    for i, image_file in enumerate(os.listdir(images_folder)): # Hintergrundbilder
+    for i, image_file in enumerate(os.listdir(images_folder)):  # Hintergrundbilder
         try:
             # Check if the file is an image (PNG or JPG)
             if image_file.endswith(".png") or image_file.endswith(".jpg"):
                 image_path = os.path.join(images_folder, image_file)
+                ##Papa
+                # Open the background image and get width and height of it
+                background_image = Image.open(image_path)
+                bg_width, bg_height = background_image.size
 
+                avg_width = 0
+                avg_height = 0
+                ##
                 # Iterate over STL files
                 for j, your_stl_file in enumerate(stl_files):
                     try:
                         # Read STL file and apply a random rotation
-                        mesh = pv.read(your_stl_file)
+                        mesh = pv.read(os.path.join(your_stl_file))
                         rotation_matrix = generate_random_rotation_matrix()
                         mesh.transform(rotation_matrix)
 
                         # Create a PyVista plotter for visualization
-                        if j == 2:
+                        if your_stl_file[-5] == 'g':
                             plotter = pv.Plotter(off_screen=True)
-                            plotter.add_mesh(mesh, color='black', show_edges=False)
+                            plotter.add_mesh(mesh, color='#343430', show_edges=False)
                         else:
                             plotter = pv.Plotter(off_screen=True)
                             plotter.add_mesh(mesh, color='white', show_edges=False)
@@ -115,20 +116,41 @@ def main(args):
                         # Set the camera position for the plotter
                         plotter.camera_position = [(0, 0, -2 * mesh.length), (0, 0, 0), (0, 1, 0)]
 
+                        ##Papa geändert
+                        if "lid" in your_stl_file:
+                            scaling_factor = np.random.uniform(0.22, 0.3)
+                        else:
+                            scaling_factor = np.random.uniform(0.05, 0.22)
+
+                        scaled_width = int(plotter.window_size[0] * scaling_factor)
+                        scaled_height = int(plotter.window_size[1] * scaling_factor)
+                        avg_width += scaled_width
+                        avg_height += scaled_height
+                        ##
+
                         # Save a screenshot of the scene
-                        screenshot_path = f'{temp_folder}/{i}_{j}.png'
-                        plotter.screenshot(screenshot_path, transparent_background=True)
+                        screenshot_path = f'{temp_folder}/{j}.png'
+                        plotter.screenshot(screenshot_path, transparent_background=True,
+                                           window_size=(scaled_width, scaled_height))
                         plotter.close()
                     except Exception as e:
                         print(f"Fehler beim Verarbeiten der STL-Datei {your_stl_file}: {e}")
                         continue
 
-                # Open the background image and resize it
-                background_image = Image.open(image_path)
-                target_size = (1920, 1080)
-                background_image = background_image.resize(target_size)
+                ##Papa, geteilt durch 2 wegen leerem Bereich im Screenshot
+                avg_width = int(avg_width / (j + 1) / 2)
+                avg_height = int(avg_height / (j + 1) / 2)
+                grid_horisontal = int(bg_width / avg_width)
+                grid_vertical = int(bg_height / avg_height)
+                matrix = []
+                for v in range(grid_vertical):
+                    row = []
+                    for h in range(grid_horisontal):
+                        x = int(avg_width / 2) + h * avg_width
+                        y = int(avg_height / 2) + v * avg_height
+                        matrix.append((x, y))
 
-                # Iterate over generated screenshots
+                        # Iterate over generated screenshots
                 for x, screenshot_path in enumerate(os.listdir(temp_folder)):
                     print("- - - - -")
                     try:
@@ -136,28 +158,13 @@ def main(args):
                         rotated_image = Image.open(f'{temp_folder}/{rotated_image_path}')
                         file_name = os.path.basename(rotated_image_path)
 
-                        # Randomly scale the rotated image
-                        if file_name[-5] == "3":
-                            scaling_factor = np.random.uniform(0.5, 0.6)
-                        else:
-                            scaling_factor = np.random.uniform(0.1, 0.2)
-
-                        # Resize the rotated image
-                        new_size = (int((rotated_image.width * scaling_factor)),
-                                    int((rotated_image.height * scaling_factor)))
-
-                        test_new_size = (int(((rotated_image.width - 520) * scaling_factor)),
-                                         int(((rotated_image.height - 240) * scaling_factor)))
-
-                        rotated_image = rotated_image.resize(new_size)
-
-                        # Get dimensions of images
-                        bg_width, bg_height = background_image.size
-                        rotated_width, rotated_height = rotated_image.size
-
-                        # Randomly choose a position to paste the rotated image on the background
-                        paste_position = (np.random.randint(0, bg_width - rotated_width),
-                                          np.random.randint(0, bg_height - rotated_height))
+                        # Randomly choose a position to paste the rotated image
+                        # on the background
+                        random_index = np.random.randint(0, len(matrix))
+                        # center point
+                        random_position = matrix[random_index]
+                        paste_position = int(random_position[0] - rotated_image.size[0] / 2), int(
+                            random_position[1] - rotated_image.size[1] / 2)
 
                         # Paste the rotated image onto the background
                         background_image.paste(rotated_image, paste_position, rotated_image)
@@ -165,32 +172,36 @@ def main(args):
                         # Save the final image
                         background_image.save(f'{final_image_path}/{i}.jpg')
 
-                        # Create label file path and determine class ID based on the filename
+                        # Create label file path and determine class ID based
+                        # on the filename
                         output_dir = final_label_path
                         label_path = os.path.join(output_dir, f"{i}.txt")
-                        if file_name[-5] == "0":
-                            class_id = 0
-                        elif file_name[-5] == "1":
-                            class_id = 1
-                        elif file_name[-5] == "2":
-                            class_id = 2
-                        elif file_name[-5] == "3":
-                            class_id = 3
+                        class_id = file_name.replace(".png", "")
 
-                        # Calculate the center coordinates and dimensions of the bounding box
-                        x_center, y_center = paste_position[0] + new_size[0] / 2, paste_position[1] + new_size[1] / 2
-                        width, height = test_new_size
+                        # Calculate the center coordinates and dimensions of
+                        # the bounding box
+                        x_center, y_center = random_position
+                        width, height = rotated_image.size[0] / 2, rotated_image.size[0] / 2
 
                         # Create the label file with bounding box information
                         create_label_file(label_path, class_id, x_center, y_center, width, height, bg_width, bg_height)
 
                         # Remove the temporary rotated image file
                         os.remove(f'{temp_folder}/{rotated_image_path}')
+                        del matrix[random_index]
                     except Exception as e:
-                        # Remove the temporary rotated image file in case of an error
+                        # Remove the temporary rotated image file in case of an
+                        # error
                         os.remove(f'{temp_folder}/{rotated_image_path}')
                         print(f"Fehler beim Verarbeiten des Bildes {image_file}: {e}")
                         continue
+
+                ##
+                ## Open the background image and resize it
+                # background_image = Image.open(image_path)
+                # bg_width, bg_height = background_image.size
+                # target_size = (1920, 1080)
+                # background_image = background_image.resize(target_size)
 
                 print(f"Verarbeite Bild {i + 1}: {image_path}")
 
@@ -203,7 +214,7 @@ def main(args):
 if __name__ == "__main__":
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Description of your program")
-    parser.add_argument("--stl_files", nargs="+", help="List of STL files")
+    parser.add_argument("-stl_files", help="List of STL files")
     parser.add_argument("--images_folder", help="Path to the folder containing images")
     parser.add_argument("--output", help="Path to output folder")
     parser.add_argument("--label", help="Path to label folder")
@@ -212,4 +223,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Call the main function with the parsed arguments
-    main(args)
+    main()
+
+# python synthetic_data.py --stl_files /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/sun_c.stl /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/planet_c.stl /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/planet_c.stl /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/lid_c.stl --output /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images --label /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels --temp /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp --images_folder /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir

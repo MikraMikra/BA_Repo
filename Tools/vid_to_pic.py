@@ -47,7 +47,7 @@ def create_random_cuts_and_scale(image_path, cuts):
             y = random.randint(0, height - 900)
 
             cut = img.crop((x, y, x + 900, y + 900))
-            cut = cut.resize((300, 300), Image.ANTIALIAS)
+            cut = cut.resize((300, 300))
             cut_file_name = f'{os.path.splitext(image_path)[0]}_cut_scaled_{x}_{y}.jpg'
             cut.save(cut_file_name)
 
