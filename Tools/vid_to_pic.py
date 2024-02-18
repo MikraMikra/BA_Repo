@@ -1,43 +1,67 @@
-
 from moviepy.editor import VideoFileClip
 from moviepy.video.VideoClip import ImageClip
 import os
 import argparse
 from PIL import Image
 import random
+import time
+import psutil
+import csv
+
+def monitor_memory(process, memory_usage):
+    memory_usage.append(process.memory_info().rss / 1024 ** 2)  # Speichernutzung in MB
 
 def convert_video_to_images(input_source, output_folder, image_size):
+    start_time = time.time()
+    process = psutil.Process()
+    memory_usage = []
+    video_processing_stats = []
+
     # Create the output folder if it does not exist
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
     if os.path.isdir(input_source):
-        # If the source is a directory, process all video files in the directory
         video_files = [f for f in os.listdir(input_source) if f.lower().endswith(('.mp4', '.avi', '.mov', '.mkv'))]
         for video_file in video_files:
             video_path = os.path.join(input_source, video_file)
-            process_single_video(video_path, output_folder, image_size)
+            video_duration, processing_time = process_single_video(video_path, output_folder, image_size, process, memory_usage)
+            video_processing_stats.append([video_file, video_duration, processing_time])
     else:
-        # If the source is a single video file, process it
-        process_single_video(input_source, output_folder, image_size)
+        video_duration, processing_time = process_single_video(input_source, output_folder, image_size, process, memory_usage)
+        video_processing_stats.append(['Single Video', video_duration, processing_time])
 
-def process_single_video(input_video, output_folder, image_size):
-    # load the video
+    with open(os.path.join(output_folder, 'memory_usage.csv'), 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Time (s)', 'Memory Usage (MB)'])
+        for i, usage in enumerate(memory_usage):
+            writer.writerow([i, usage])
+
+    with open(os.path.join(output_folder, 'video_processing_stats.csv'), 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(['Video Name', 'Video Duration (s)', 'Processing Time (s)'])
+        writer.writerows(video_processing_stats)
+
+    end_time = time.time()
+    print(f"Total processing completed in: {end_time - start_time} seconds.")
+
+def process_single_video(input_video, output_folder, image_size, process, memory_usage):
     video_clip = VideoFileClip(input_video)
+    video_start_time = time.time()
+    video_duration = video_clip.duration
 
-    # Iterate over every second of the video and save an image
     for i, frame in enumerate(video_clip.iter_frames(fps=1, dtype='uint8')):
+        monitor_memory(process, memory_usage)
         image_file = os.path.join(output_folder, f'{os.path.splitext(os.path.basename(input_video))[0]}_frame_{i + 1}.jpg')
         img_clip = ImageClip(frame)
-
         if image_size:
-            img_clip = img_clip.resize((image_size[0], image_size[1]))
-
+            img_clip = img_clip.resize(image_size)
         img_clip.save_frame(image_file, withmask=False)
         create_random_cuts_and_scale(image_file, 5)
 
-    # close the video
     video_clip.close()
+    processing_time = time.time() - video_start_time
+    return video_duration, processing_time
 
 def create_random_cuts_and_scale(image_path, cuts):
     with Image.open(image_path) as img:
@@ -45,27 +69,22 @@ def create_random_cuts_and_scale(image_path, cuts):
             width, height = img.size
             x = random.randint(0, width - 900)
             y = random.randint(0, height - 900)
-
             cut = img.crop((x, y, x + 900, y + 900))
             cut = cut.resize((300, 300))
             cut_file_name = f'{os.path.splitext(image_path)[0]}_cut_scaled_{x}_{y}.jpg'
             cut.save(cut_file_name)
-
-    os.remove(image_path)  # Delete the original image after creating cuts
+    os.remove(image_path)
 
 def main():
     parser = argparse.ArgumentParser(description='Convert a video or videos in a folder to images.')
     parser.add_argument('--source', required=True, help='Path to the input video file or folder.')
     parser.add_argument('--output', required=True, help='Path to the output folder for images.')
-    parser.add_argument('--size', default=None, type=str,
-                        help='Size of the output images (widthxheight). Example: 640x480')
-
+    parser.add_argument('--size', default=None, type=str, help='Size of the output images (widthxheight). Example: 640x480')
     args = parser.parse_args()
 
     image_size = None
     if args.size:
         image_size = tuple(map(int, args.size.split('x')))
-
     convert_video_to_images(args.source, args.output, image_size)
 
 if __name__ == "__main__":
