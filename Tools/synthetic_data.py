@@ -135,7 +135,9 @@ def main():
                 avg_height = 0
                 ##
                 # Iterate over STL files
+                start_time_rend = time.time()
                 for j, your_stl_file in enumerate(stl_files):
+
                     try:
                         # Read STL file and apply a random rotation
                         mesh = pv.read(os.path.join(your_stl_file))
@@ -173,6 +175,8 @@ def main():
                     except Exception as e:
                         print(f"Fehler beim Verarbeiten der STL-Datei {your_stl_file}: {e}")
                         continue
+                record_event_duration("Rend_Obj", start_time_rend)
+
 
                 ##P, geteilt durch 2 wegen leerem Bereich im Screenshot
                 avg_width = int(avg_width / (j + 1) / 2)
