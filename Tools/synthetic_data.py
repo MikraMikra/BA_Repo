@@ -126,7 +126,7 @@ def main():
             # Check if the file is an image (PNG or JPG)
             if image_file.endswith(".png") or image_file.endswith(".jpg"):
                 image_path = os.path.join(images_folder, image_file)
-                ##Papa
+                ##P
                 # Open the background image and get width and height of it
                 background_image = Image.open(image_path)
                 bg_width, bg_height = background_image.size
@@ -174,7 +174,7 @@ def main():
                         print(f"Fehler beim Verarbeiten der STL-Datei {your_stl_file}: {e}")
                         continue
 
-                ##Papa, geteilt durch 2 wegen leerem Bereich im Screenshot
+                ##P, geteilt durch 2 wegen leerem Bereich im Screenshot
                 avg_width = int(avg_width / (j + 1) / 2)
                 avg_height = int(avg_height / (j + 1) / 2)
                 grid_horisontal = int(bg_width / avg_width)
