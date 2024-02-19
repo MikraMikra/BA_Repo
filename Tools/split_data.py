@@ -3,7 +3,40 @@ import random
 import shutil
 import argparse
 
+import psutil
+import csv
+import time
+
+# Initialize global lists for memory usage and timestamps
+memory_usage_stats = []
+timestamps = []
+
+def start_memory_monitoring(interval=1):
+    """Starts monitoring memory usage in a separate thread."""
+    def monitor():
+        while True:
+            memory_usage_stats.append(psutil.Process().memory_info().rss / 1024 ** 2)
+            time.sleep(interval)
+    import threading
+    t = threading.Thread(target=monitor)
+    t.daemon = True
+    t.start()
+
+def record_event_duration(label, start_time):
+    """Records the duration of an event."""
+    duration = time.time() - start_time
+    timestamps.append((label, duration))
+
+def write_to_csv(file_name, header, data):
+    """Writes data to a CSV file."""
+    with open(file_name, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(header)
+        writer.writerows(data)
+
 def split_data(root_folder, train_ratio, val_ratio):
+    start_memory_monitoring()
+    start_time_main = time.time()
     # Paths to folders
     images_folder = os.path.join(root_folder, "images")
     labels_folder = os.path.join(root_folder, "labels")
@@ -49,6 +82,13 @@ def split_data(root_folder, train_ratio, val_ratio):
 
         shutil.copyfile(source_img, dest_img)
         shutil.copyfile(source_txt, dest_txt)
+
+    record_event_duration("Main", start_time_main)
+
+    time_intervals = list(range(len(memory_usage_stats)))
+    memory_data = list(zip(time_intervals, memory_usage_stats))
+    write_to_csv('memory_usage.csv', ['Time (s)', 'Memory Usage (MB)'], memory_data)
+    write_to_csv('timestamps.csv', ['Label', 'Duration (s)'], timestamps)
 
 def main():
     parser = argparse.ArgumentParser(description='Split image and label files into training, validation, and test sets.')
