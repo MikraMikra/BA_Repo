@@ -145,7 +145,7 @@ def main():
                         mesh.transform(rotation_matrix)
 
                         # Create a PyVista plotter for visualization
-                        if your_stl_file[-5] == 'g':
+                        if j == 2:
                             plotter = pv.Plotter(off_screen=True)
                             plotter.add_mesh(mesh, color='#343430', show_edges=False)
                         else:
