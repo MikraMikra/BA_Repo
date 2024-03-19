@@ -29,7 +29,6 @@ def main():
     )
     synthetic_data_main(synthetic_data_args)
 
-    # Data Splitting
     split_data(args.output, args.train_ratio, args.val_ratio)
 
 if __name__ == "__main__":
