@@ -104,19 +104,13 @@ def create_label_file(label_path, class_id, x_center, y_center, width, height, b
 
 
 # Main function to generate synthetic images with labeled bounding boxes
-def main():
+def synthetic_data_generator(stl_files, images_folder, temp_folder, final_image_path, final_label_path):
     """
     Main function to generate synthetic images with labeled bounding boxes.
 
     Args:
         args (argparse.Namespace): Command-line arguments.
     """
-    # Extract command-line arguments
-    stl_files = args.stl_files
-    images_folder = args.images_folder
-    temp_folder = args.temp_folder
-    final_image_path = args.output
-    final_label_path = args.label
 
     # Iterate over images in the specified folder
     for i, image_file in enumerate(os.listdir(images_folder)):  # Hintergrundbilder
@@ -261,20 +255,5 @@ def main():
         write_to_csv('memory_usage.csv', ['Time (s)', 'Memory Usage (MB)'], memory_data)
         write_to_csv('timestamps.csv', ['Label', 'Duration (s)'], timestamps)
 
-
-# Check if the script is being run as the main program
-if __name__ == "__main__":
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Description of your program")
-    parser.add_argument("--stl_files", nargs='+', help="List of STL files")
-    parser.add_argument("--images_folder", help="Path to the folder containing images")
-    parser.add_argument("--output", help="Path to output folder")
-    parser.add_argument("--label", help="Path to label folder")
-    parser.add_argument("--temp_folder", help="Path to the temporary folder")
-
-    args = parser.parse_args()
-
-    # Call the main function with the parsed arguments
-    main()
 
 # python synthetic_data.py --stl_files /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/sun_c.stl /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/planet_c.stl /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/planet_c.stl /Users/michaelkravt/PycharmProjects/BA_Repo/resources/stl_files/lid_c.stl --output /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/images --label /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/labels --temp /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir/temp --images_folder /Users/michaelkravt/PycharmProjects/BA_Repo/Tools/MainDir/TestDir

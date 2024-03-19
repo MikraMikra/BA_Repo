@@ -87,17 +87,5 @@ def split_data(root_folder, train_ratio, val_ratio):
 
     time_intervals = list(range(len(memory_usage_stats)))
     memory_data = list(zip(time_intervals, memory_usage_stats))
-    write_to_csv('memory_usage.csv', ['Time (s)', 'Memory Usage (MB)'], memory_data)
-    write_to_csv('timestamps.csv', ['Label', 'Duration (s)'], timestamps)
-
-def main():
-    parser = argparse.ArgumentParser(description='Split image and label files into training, validation, and test sets.')
-    parser.add_argument('--source', required=True, help='Path to the root folder containing "images" and "labels" folders.')
-    parser.add_argument('--train_ratio', type=float, default=0.7, help='Percentage of data for the training set.')
-    parser.add_argument('--val_ratio', type=float, default=0.25, help='Percentage of data for the validation set.')
-
-    args = parser.parse_args()
-
-    split_data(args.source, args.train_ratio, args.val_ratio)
-
-main()
+    #write_to_csv('memory_usage.csv', ['Time (s)', 'Memory Usage (MB)'], memory_data)
+    #write_to_csv('timestamps.csv', ['Label', 'Duration (s)'], timestamps)
